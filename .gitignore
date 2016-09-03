@@ -1,0 +1,13 @@
+*.tlog
+SignalCoroutine/Debug/SignalCoroutine.unsuccessfulbuild
+*.obj
+SignalCoroutine/Debug/vc100.idb
+*.pdb
+SignalCoroutine/Debug/SignalCoroutine.vcxprojResolveAssemblyReference.cache
+*.log
+SignalCoroutine.sdf
+*.opensdf
+Debug/SignalCoroutine.lib
+*.exp
+SignalCoroutine.suo
+*.lastbuildstate
