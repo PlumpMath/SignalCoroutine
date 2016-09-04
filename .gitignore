@@ -11,3 +11,7 @@ Debug/SignalCoroutine.lib
 *.exp
 SignalCoroutine.suo
 *.lastbuildstate
+*.exe
+Debug/SignalCoroutine.ilk
+*.manifest
+example/example.vcxproj.user

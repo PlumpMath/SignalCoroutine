@@ -5,7 +5,7 @@
 #include <boost/tuple/tuple.hpp>
 #include <queue>
 #include <vector>
-
+#include <boost/scope_exit.hpp>
 class Context;
 
 typedef boost::shared_ptr<Context> ContextPtr;
@@ -34,7 +34,7 @@ public:
 		});
 		pull_coro_t &yield = *_yield;
 		yield();
-		s.disconnect(sig);
+		sig.disconnect();
 	}
 
 
@@ -49,7 +49,7 @@ public:
 
 		pull_coro_t &yield = *_yield;
 		yield();
-		s.disconnect(sig);
+		sig.disconnect();
 		void * result = yield.get();
 		return std::move(*(T*)(result));
 	}
@@ -65,7 +65,7 @@ public:
 
 		pull_coro_t &yield = *_yield;
 		yield();
-		s.disconnect(sig);
+		sig.disconnect();
 		void *result = yield.get();
 		return std::move( *(T*)(result));
 	}
@@ -74,6 +74,7 @@ public:
 	template <class T0, class T1>
 	boost::tuple<T0, T1> wait( boost::signals2::signal< void (T0, T1) > &s)
 	{
+
 		auto sig = s.connect([&](T0 v0, T1 v1)
 		{
 			this->resume(v0, v1);
@@ -81,10 +82,10 @@ public:
 
 		pull_coro_t &yield = *_yield;
 		yield();
-		s.disconnect(sig);
+		sig.disconnect();
 		void *result = yield.get();
 
-		boost::tuple<T0, T1> &t = *(boost::tuple<T0, T1>*)(result);
+		boost::tuple<T0&, T1&> &t = *(boost::tuple<T0&, T1&>*)(result);
 		return std::move(t);
 	}
 
@@ -99,9 +100,9 @@ public:
 
 		pull_coro_t &yield = *_yield;
 		yield();
-		s.disconnect(sig);
+		sig.disconnect();
 		void *result = w.get();
-		boost::tuple<T0, T1> &t = *(boost::tuple<T0, T1>*)(result);
+		boost::tuple<T0&, T1&> &t = *(boost::tuple<T0, T1>*)(result);
 		return std::move(t);
 	}
 
@@ -117,7 +118,7 @@ public:
 		pull_coro_t &yield = *_yield;
 		yield();
 		void *result = yield.get();
-		s.disconnect(sig);
+		sig.disconnect();
 
 		boost::tuple<T0, T1> &t = *(boost::tuple<T0, T1>*)(result);
 		return std::move(t);
@@ -133,7 +134,7 @@ public:
 
 		pull_coro_t &yield = *_yield;
 		yield();
-		s.disconnect(sig);
+		sig.disconnect();
 		void *result = yield.get();
 
 		boost::tuple<T0 &, T1 &, T2 &> &t  = *(boost::tuple<T0 &, T1 &, T2 &>*)(result);
@@ -156,6 +157,7 @@ public:
 	void resume(T0 &v0, T1 &v1)
 	{
 		boost::tuple<T0&, T1&> t(v0, v1);
+		void *p = &t;
 		Caller( (void *)&t);
 	}
 
@@ -185,22 +187,24 @@ template <class T>
 class MessageQueue
 {
 public:
-	const T &front(Context &context) const
+	const T &front(boost::shared_ptr<Context> &context) const
 	{
 		if (_messages.size() > 0 )
 		{
 			return _messages.front();
 		}
+		context->wait(this->_sigResume, context);
+		return _messages.front();
 	}
 
-	T &front(Context &context)
+	T &front(boost::shared_ptr<Context> &context)
 	{
 		if (_messages.size() > 0)
 		{
 			return _messages.front();
 		}
 
-		context.wait(this->_sig_resume, context);
+		context->wait(this->_sigResume, context);
 
 		return _messages.front();
 	}
@@ -213,11 +217,11 @@ public:
 	void push(const T &v)
 	{
 		_messages.push(v);
-		this->_sig_resume();
+		this->_sigResume();
 	}
 
 protected:
-	boost::signals2::signal< void (void) >	_sig_resume;
+	boost::signals2::signal< void (void) >	_sigResume;
 
 	std::queue<T>	_messages;
 };
