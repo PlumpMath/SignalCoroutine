@@ -3,6 +3,7 @@
 #include <boost/function.hpp>
 #include <boost/signals2/signal.hpp>
 #include <boost/tuple/tuple.hpp>
+#include <queue>
 #include <vector>
 
 class Context;
@@ -180,6 +181,47 @@ protected:
 
 };
 
+template <class T>
+class MessageQueue
+{
+public:
+	const T &front(Context &context) const
+	{
+		if (_messages.size() > 0 )
+		{
+			return _messages.front();
+		}
+	}
+
+	T &front(Context &context)
+	{
+		if (_messages.size() > 0)
+		{
+			return _messages.front();
+		}
+
+		context.wait(this->_sig_resume, context);
+
+		return _messages.front();
+	}
+
+	void pop()
+	{
+		_messages.pop();
+	}
+
+	void push(const T &v)
+	{
+		_messages.push(v);
+		this->_sig_resume();
+	}
+
+protected:
+	boost::signals2::signal< void (void) >	_sig_resume;
+
+	std::queue<T>	_messages;
+};
+
 //协程管理，主要是为了能够删除执行完毕的协程
 class CoroutineManage
 {
@@ -187,6 +229,7 @@ public:
 	static CoroutineManage instance();
 
 	//清理已经执行完毕的协程
+	//其实可以通过在resume完毕的时候执行回收资源，但是目前没有测试，所以先暂时手动回收资源
 	void gc();
 
 	void cleanup();
