@@ -227,7 +227,7 @@ protected:
 };
 
 //协程管理，主要是为了能够删除执行完毕的协程
-class CoroutineManage
+class CoroutineManage:public boost::noncopyable
 {
 public:
 	static CoroutineManage &instance();
