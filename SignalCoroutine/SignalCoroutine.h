@@ -26,6 +26,7 @@ public:
 	{
 	}
 
+	//在高版本的VS里面,可以使用可变模板来代替
 	void wait( boost::signals2::signal<void (void)> &s)
 	{
 		auto sig = s.connect( [&](void) 
