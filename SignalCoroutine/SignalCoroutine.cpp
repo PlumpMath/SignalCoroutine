@@ -18,7 +18,7 @@ void CoroutineManage::gc()
 	this->Coroutines.erase(iter, this->Coroutines.end());
 }
 
-CoroutineManage CoroutineManage::instance()
+CoroutineManage &CoroutineManage::instance()
 {
 	//不考虑多线程
 	static CoroutineManage in;

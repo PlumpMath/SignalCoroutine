@@ -230,7 +230,7 @@ protected:
 class CoroutineManage
 {
 public:
-	static CoroutineManage instance();
+	static CoroutineManage &instance();
 
 	//清理已经执行完毕的协程
 	//其实可以通过在resume完毕的时候执行回收资源，但是目前没有测试，所以先暂时手动回收资源
