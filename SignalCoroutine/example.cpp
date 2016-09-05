@@ -1,11 +1,12 @@
 #include "SignalCoroutine.h"
 #include <iostream>
-
 boost::signals2::signal< void (void) > sigReadyRead;
 
 boost::signals2::signal< void (const char *data, int len) >	sigReadData;
 
 boost::signals2::signal< void ()> sigClose;
+
+static MessageQueue<const char *> msgQueue;
 
 void readCoroutine(boost::shared_ptr<Context> context)
 {
@@ -36,14 +37,126 @@ void pushDataRead()
 	sigReadData(msg3, strlen(msg3));
 
 	sigClose();
+}
 
+void consumer(boost::shared_ptr<Context> context)
+{
+	std::cout<<"begin consumer data"<<std::endl;
+
+	while (true)
+	{
+		const char *msg = msgQueue.front(context);
+		if ( msg == nullptr )
+		{
+			break;
+		}
+		else
+		{
+			std::cout<<msg<<std::endl;
+		}
+		msgQueue.pop();
+	}
+}
+
+void producer()
+{
+	static const char *msg1 = "test data1";
+	static const char *msg2 = "test data2";
+	static const char *msg3 = "test data3";
+
+	msgQueue.push(msg1);
+	msgQueue.push(msg2);
+	msgQueue.push(msg3);
+	msgQueue.push(nullptr);
+}
+
+class referenceData:public boost::noncopyable
+{
+public:
+	~referenceData()
+	{
+
+	}
+};
+
+static boost::signals2::signal< void (referenceData &r) > sigReference;
+
+void testReference(boost::shared_ptr<Context> context)
+{
+	referenceData &r = context->wait(sigReference);
+
+}
+
+void pushTestReference()
+{
+	referenceData d;
+	sigReference(d);
+}
+
+static boost::signals2::signal< void (referenceData &r1, referenceData &r2) > sigReferenceV2;
+
+void testReferenceV2(boost::shared_ptr<Context> context)
+{
+	boost::tuple<  referenceData&, referenceData & > d = context->wait(sigReferenceV2);
+
+}
+
+void pushTestReferenceV2()
+{
+	referenceData d1;
+	referenceData d2;
+	sigReferenceV2(d1, d2);	
+}
+
+static boost::signals2::signal< void (referenceData &r1, referenceData &r2, referenceData &r3) > sigReferenceV3;
+
+void testReferenceV3(boost::shared_ptr<Context> context)
+{
+	boost::tuple< referenceData &, referenceData &, referenceData &> d = context->wait(sigReferenceV3);
+
+}
+
+void pushTestReferneceV3()
+{
+	referenceData d1;
+	referenceData d2;
+	referenceData d3;
+	sigReferenceV3(d1, d2, d3);
 }
 int main()
 {
-	boost::function< void (boost::shared_ptr<Context>) > coro = boost::bind( &readCoroutine, _1);
-	spawn(coro);
-	//example
-	pushDataRead();
+	{
+		//example read data
+		boost::function< void (boost::shared_ptr<Context>) > coro = boost::bind( &readCoroutine, _1);
+		spawn(coro);
+		pushDataRead();
+	}
+
+	{
+		//example message queue
+		boost::function< void (boost::shared_ptr<Context>) > coro = boost::bind( &consumer, _1);
+		spawn(coro);
+		producer();
+	}
+
+	{
+		//example reference
+		boost::function< void (boost::shared_ptr<Context>) > coro = boost::bind( &testReference, _1);
+		spawn(coro);
+		pushTestReference();
+	}
+
+	{
+		boost::function< void (boost::shared_ptr<Context>) > coro = boost::bind( &testReferenceV2, _1);
+		spawn(coro);
+		pushTestReferenceV2();
+	}
+
+	{
+		boost::function< void (boost::shared_ptr<Context>) > coro = boost::bind( &testReferenceV3, _1);
+		spawn(coro);
+		pushTestReferneceV3();
+	}
 
 	CoroutineManage::instance().gc();
 }

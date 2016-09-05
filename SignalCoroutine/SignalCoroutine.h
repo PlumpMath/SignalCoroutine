@@ -44,14 +44,13 @@ public:
 		auto sig = s.connect([&](T v)
 		{
 			this->resume(v);
-
 		});
 
 		pull_coro_t &yield = *_yield;
 		yield();
 		sig.disconnect();
 		void * result = yield.get();
-		return std::move(*(T*)(result));
+		return *(T*)(result);
 	}
 
 
@@ -67,7 +66,7 @@ public:
 		yield();
 		sig.disconnect();
 		void *result = yield.get();
-		return std::move( *(T*)(result));
+		return *(T*)(result);
 	}
 
 
@@ -101,8 +100,8 @@ public:
 		pull_coro_t &yield = *_yield;
 		yield();
 		sig.disconnect();
-		void *result = w.get();
-		boost::tuple<T0&, T1&> &t = *(boost::tuple<T0, T1>*)(result);
+		void *result = yield.get();
+		boost::tuple<T0&, T1&> &t = *(boost::tuple<T0&, T1&>*)(result);
 		return std::move(t);
 	}
 
@@ -125,7 +124,7 @@ public:
 	}
 
 	template <class T0, class T1, class T2>
-	boost::tuple<T0, T1, T2> wait( boost::signals2::signal< void (T0 &, T1 &, T2 &) > &s)
+	boost::tuple<T0&, T1&, T2&> wait( boost::signals2::signal< void (T0 &, T1 &, T2 &) > &s)
 	{
 		auto sig = s.connect( [&](T0 &v0, T1 &v1, T2 &v2) 
 		{
@@ -204,7 +203,7 @@ public:
 			return _messages.front();
 		}
 
-		context->wait(this->_sigResume, context);
+		context->wait(this->_sigResume);
 
 		return _messages.front();
 	}
