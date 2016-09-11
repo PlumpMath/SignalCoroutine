@@ -1,4 +1,6 @@
 #include "SignalCoroutine.h"
+#include "SelectorContext.h"
+
 #include <iostream>
 boost::signals2::signal< void (void) > sigReadyRead;
 
@@ -196,8 +198,10 @@ void pushTestValueV3()
 	sigValueV3(d1, d2, d3);
 }
 
+static boost::signals2::signal< void (void)>	sigCaseVoid1;
 int main()
 {
+
 	{
 		//example read data
 		boost::function< void (boost::shared_ptr<Context>) > coro = boost::bind( &readCoroutine, _1);

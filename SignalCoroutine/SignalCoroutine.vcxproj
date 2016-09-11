@@ -62,6 +62,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="SelectorContext.h" />
     <ClInclude Include="SignalCoroutine.h" />
   </ItemGroup>
   <ItemGroup>

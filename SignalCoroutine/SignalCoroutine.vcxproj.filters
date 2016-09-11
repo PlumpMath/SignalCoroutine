@@ -18,6 +18,9 @@
     <ClInclude Include="SignalCoroutine.h">
       <Filter>源文件</Filter>
     </ClInclude>
+    <ClInclude Include="SelectorContext.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="SignalCoroutine.cpp">
