@@ -6,9 +6,13 @@
 #include <queue>
 #include <vector>
 #include <boost/scope_exit.hpp>
+#include <assert.h>
 class Context;
+class CoroutineClosure;
+
 
 typedef boost::shared_ptr<Context> ContextPtr;
+typedef boost::shared_ptr<CoroutineClosure>	CoroutineClosurePtr;
 
 //上下文，主要保存协程所需要的数据
 class Context:public boost::noncopyable
@@ -36,6 +40,13 @@ public:
 		pull_coro_t &yield = *_yield;
 		yield();
 		sig.disconnect();
+	}
+
+	void selectWait()
+	{
+		assert(this->CaseList.size() == 0);
+		pull_coro_t &yield = *_yield;
+		yield();
 	}
 
 
@@ -172,6 +183,7 @@ public:
 
 	pull_coro_t *_yield;
 
+	std::list<CoroutineClosurePtr>	CaseList;
 protected:
 	friend void run(boost::weak_ptr<Context> &context, pull_coro_t &coro);
 

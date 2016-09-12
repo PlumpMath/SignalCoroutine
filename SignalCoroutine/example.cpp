@@ -199,6 +199,20 @@ void pushTestValueV3()
 }
 
 static boost::signals2::signal< void (void)>	sigCaseVoid1;
+static boost::signals2::signal< void (int)>		sigCaseInt1;
+
+void testSelectCase(boost::shared_ptr<Context> &context)
+{
+	SelectBegin(context)
+		SelectCase(sigCaseInt1)(int &v){
+			std::cout<<v<<std::endl;
+		};
+		SelectCase(sigCaseVoid1)(void){
+			std::cout<<"None"<<std::endl;
+		};
+	SelectEnd();
+}
+
 int main()
 {
 
@@ -256,5 +270,8 @@ int main()
 		pushTestValueV3();
 	}
 
+	{
+
+	}
 	CoroutineManage::instance().gc();
 }
