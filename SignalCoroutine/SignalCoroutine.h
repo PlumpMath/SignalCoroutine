@@ -44,7 +44,7 @@ public:
 
 	void selectWait()
 	{
-		assert(this->CaseList.size() == 0);
+		assert(this->CaseList.size() != 0);
 		pull_coro_t &yield = *_yield;
 		yield();
 	}

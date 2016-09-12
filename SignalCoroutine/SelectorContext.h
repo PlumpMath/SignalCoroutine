@@ -32,6 +32,7 @@ public:
 	SelectCaseClosureV1(boost::shared_ptr< Context> &context, _signal_type &sig)
 	{
 		_conn = sig.connect( boost::bind(&SelectCaseClosureV1::doing, this, _1) );
+		_context = context;
 	}
 
 	~SelectCaseClosureV1()
@@ -62,6 +63,7 @@ public:
 	SelectCaseClosureV2(boost::shared_ptr< Context> &context, _signal_type &sig)
 	{
 		_conn = sig.connect( boost::bind(&SelectCaseClosure::doing, this, _1, _2) );
+		_context = context;
 	}
 
 	~SelectCaseClosureV2()
@@ -91,6 +93,7 @@ public:
 	SelectCaseClosure(boost::shared_ptr< Context> &context, _signal_type &sig)
 	{
 		_conn = sig.connect( boost::bind(&SelectCaseClosure::doing, this) );
+		_context = context;
 	}
 
 	~SelectCaseClosure()
@@ -102,8 +105,8 @@ protected:
 	void doing(void)
 	{
 		auto context_ptr = _context.lock();
-		context_ptr->CaseList.clear();
 		_callback();
+		context_ptr->CaseList.clear();
 		context_ptr->Caller(nullptr);
 	}
 	boost::weak_ptr< Context >	_context;

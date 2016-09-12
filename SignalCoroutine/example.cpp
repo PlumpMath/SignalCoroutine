@@ -211,6 +211,13 @@ void testSelectCase(boost::shared_ptr<Context> &context)
 			std::cout<<"None"<<std::endl;
 		};
 	SelectEnd();
+	std::cout<<"end selector"<<std::endl;
+}
+
+void changeSelector()
+{
+	sigCaseVoid1();
+	sigCaseInt1(12);
 }
 
 int main()
@@ -271,7 +278,9 @@ int main()
 	}
 
 	{
-
+		boost::function< void (boost::shared_ptr<Context>) > coro = boost::bind( &testSelectCase, _1);
+		spawn(coro);
+		changeSelector();
 	}
 	CoroutineManage::instance().gc();
 }
